@@ -12,13 +12,33 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// 通用發信函數，支援 Google Apps Script 代理 (用於突破 Render 免費版封鎖 587 Port)
+const sendMail = async (mailOptions) => {
+  if (process.env.GAS_EMAIL_URL) {
+    const res = await fetch(process.env.GAS_EMAIL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        html: mailOptions.html
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error('GAS Email Error: ' + data.error);
+    return data;
+  } else {
+    return transporter.sendMail(mailOptions);
+  }
+};
+
 /**
  * 員工建立時的歡迎通知
  */
 export const sendWelcomeEmail = async (email, employeeName, account, password) => {
   if (!email) return;
   const mailOptions = {
-    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    from: `"排班系統通知" <${process.env.SMTP_USER || 'system'}>`,
     to: email,
     subject: '您的員工帳號已建立',
     html: `
@@ -34,7 +54,7 @@ export const sendWelcomeEmail = async (email, employeeName, account, password) =
     `
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`Successfully sent welcome email to ${email}`);
   } catch (error) {
     console.error(`Failed to send welcome email to ${email}:`, error.message);
@@ -64,7 +84,7 @@ export const sendSchedulePublishEmail = async (email, employeeName, shifts) => {
   }).join('');
 
   const mailOptions = {
-    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    from: `"排班系統通知" <${process.env.SMTP_USER || 'system'}>`,
     to: email,
     subject: '您的新班表已發布',
     html: `
@@ -88,7 +108,7 @@ export const sendSchedulePublishEmail = async (email, employeeName, shifts) => {
     `
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`Successfully sent schedule publish email to ${email}`);
   } catch (error) {
     console.error(`Failed to send email to ${email}:`, error.message);
@@ -101,7 +121,7 @@ export const sendSchedulePublishEmail = async (email, employeeName, shifts) => {
 export const sendLeaveApplicationEmail = async (email, employeeName, leaveDetails) => {
   if (!email) return;
   const mailOptions = {
-    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    from: `"排班系統通知" <${process.env.SMTP_USER || 'system'}>`,
     to: email,
     subject: '假單申請已送出',
     html: `
@@ -119,7 +139,7 @@ export const sendLeaveApplicationEmail = async (email, employeeName, leaveDetail
     `
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`Successfully sent leave application email to ${email}`);
   } catch (error) {
     console.error(`Failed to send email to ${email}:`, error.message);
@@ -132,7 +152,7 @@ export const sendLeaveApplicationEmail = async (email, employeeName, leaveDetail
 export const sendLeaveReviewEmail = async (email, employeeName, leaveDetails, status) => {
   if (!email) return;
   const mailOptions = {
-    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    from: `"排班系統通知" <${process.env.SMTP_USER || 'system'}>`,
     to: email,
     subject: `您的假單已${status}`,
     html: `
@@ -149,7 +169,7 @@ export const sendLeaveReviewEmail = async (email, employeeName, leaveDetails, st
     `
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`Successfully sent leave review email to ${email}`);
   } catch (error) {
     console.error(`Failed to send email to ${email}:`, error.message);
@@ -162,7 +182,7 @@ export const sendLeaveReviewEmail = async (email, employeeName, leaveDetails, st
 export const sendTomorrowShiftReminder = async (email, employeeName, date) => {
   if (!email) return;
   const mailOptions = {
-    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    from: `"排班系統通知" <${process.env.SMTP_USER || 'system'}>`,
     to: email,
     subject: '明日上班提醒',
     html: `
@@ -174,7 +194,7 @@ export const sendTomorrowShiftReminder = async (email, employeeName, date) => {
     `
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     console.log(`Successfully sent tomorrow shift reminder email to ${email}`);
   } catch (error) {
     console.error(`Failed to send email to ${email}:`, error.message);
