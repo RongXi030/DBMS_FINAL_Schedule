@@ -164,10 +164,12 @@ router.post('/attendance/clock-out', async (req, res) => {
 router.get('/leaves', async (req, res) => {
   const { employee_id } = req.query;
   try {
+    let query = `
       SELECT l.*, e.last_name, e.first_name, r.last_name AS reviewer_last_name, r.first_name AS reviewer_first_name
       FROM LeaveRecords l 
       JOIN Employees e ON l.employee_id = e.employee_id
       LEFT JOIN Employees r ON l.reviewer_id = r.employee_id
+    `;
     let params = [];
     if (employee_id) {
       query += ' WHERE l.employee_id = ?';
