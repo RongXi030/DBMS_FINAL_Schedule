@@ -691,7 +691,13 @@ router.get('/reports/detailed', async (req, res) => {
   const endStr = `${nextMonthFirst.getFullYear()}-${String(nextMonthFirst.getMonth() + 1).padStart(2, '0')}-01`;
 
   try {
-    const [emps] = await db.execute(`SELECT employee_id, last_name, first_name FROM Employees WHERE employment_status = '在職' AND rule_id IS NOT NULL`);
+    const [emps] = await db.execute(`
+      SELECT DISTINCT e.employee_id, e.last_name, e.first_name 
+      FROM Employees e 
+      LEFT JOIN Schedules s ON e.employee_id = s.employee_id AND s.schedule_date >= ? AND s.schedule_date < ?
+      WHERE (e.employment_status = '在職' OR s.schedule_id IS NOT NULL) 
+      AND e.rule_id IS NOT NULL
+    `, [startStr, endStr]);
 
     // 獲取所有相關紀錄
     const [schedules] = await db.execute(`
@@ -888,7 +894,23 @@ router.get('/dashboard/today', async (req, res) => {
 router.get('/reports/stats', async (req, res) => {
   try {
     const { year, month } = req.query;
-    const [emps] = await db.execute(`SELECT COUNT(*) as count FROM Employees WHERE employment_status = '在職' AND rule_id IS NOT NULL`);
+    let empsQuery = `SELECT COUNT(*) as count FROM Employees WHERE employment_status = '在職' AND rule_id IS NOT NULL`;
+    let empsParams = [];
+    if (year && month) {
+      const startStr = `${year}-${String(month).padStart(2, '0')}-01`;
+      const nextMonth = month == 12 ? 1 : Number(month) + 1;
+      const nextYear = month == 12 ? Number(year) + 1 : Number(year);
+      const endStr = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+      empsQuery = `
+        SELECT COUNT(DISTINCT e.employee_id) as count 
+        FROM Employees e 
+        LEFT JOIN Schedules s ON e.employee_id = s.employee_id AND s.schedule_date >= ? AND s.schedule_date < ?
+        WHERE (e.employment_status = '在職' OR s.schedule_id IS NOT NULL) 
+        AND e.rule_id IS NOT NULL
+      `;
+      empsParams = [startStr, endStr];
+    }
+    const [emps] = await db.execute(empsQuery, empsParams);
     const [leaves] = await db.execute(`SELECT COUNT(*) as count FROM LeaveRecords WHERE status = '審核中'`);
 
     let abnormalCount = 0;
