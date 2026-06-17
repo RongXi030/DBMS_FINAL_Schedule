@@ -146,7 +146,8 @@ export default function Employees() {
           remaining_special_leave_days: emp.remaining_special_leave_days,
           last_name: emp.last_name,
           first_name: emp.first_name,
-          gender: emp.gender
+          gender: emp.gender,
+          rule_id: emp.rule_id
         })
       });
       const data = await res.json();
