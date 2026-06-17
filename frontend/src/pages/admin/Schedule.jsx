@@ -428,7 +428,7 @@ export default function AdminSchedule() {
                    const emp = employees.find(e => e.employee_id === l.employee_id);
                    if (!emp) return null;
                    return (
-                     <div key={`leave-${l.leave_id}`} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', color: '#6b7280', borderRadius: '4px', padding: '2px 6px', fontSize: '0.85rem', width: 'calc(50% - 2px)' }}>
+                     <div key={`leave-${l.leave_id}`} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', color: '#6b7280', borderRadius: '4px', padding: '2px 6px', fontSize: '0.85rem', width: '100%' }}>
                        {emp.last_name}{emp.first_name} (休)
                      </div>
                    );
@@ -442,7 +442,7 @@ export default function AdminSchedule() {
                     return l.employee_id === sch.employee_id && l.status === '已核准' && lStart <= dateStrYMD && lEnd >= dateStrYMD;
                   });
                   return (
-                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: isConflict ? '#ef4444' : 'var(--color-primary-500)', border: isConflict ? '2px solid #b91c1c' : 'none', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: 'calc(50% - 2px)' }}>
+                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: isConflict ? '#ef4444' : 'var(--color-primary-500)', border: isConflict ? '2px solid #b91c1c' : 'none', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: '100%' }}>
                     <span 
                       onClick={() => openSwapModal({ ...sch, dateStr })}
                       style={{ 
