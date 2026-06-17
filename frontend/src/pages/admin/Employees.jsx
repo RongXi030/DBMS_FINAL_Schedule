@@ -301,7 +301,7 @@ export default function Employees() {
               <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>特休餘額</label>
-                  <input type="number" className="input-field" value={formData.remaining_special_leave_days} onChange={e => setFormData({ ...formData, remaining_special_leave_days: Number(e.target.value) })} required />
+                  <input type="number" className="input-field" value={formData.remaining_special_leave_days ?? 0} onChange={e => setFormData({ ...formData, remaining_special_leave_days: Number(e.target.value) })} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>套用規則</label>
