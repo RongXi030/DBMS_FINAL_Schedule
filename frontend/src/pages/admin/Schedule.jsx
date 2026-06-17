@@ -120,6 +120,17 @@ export default function AdminSchedule() {
   };
 
   const handlePublish = async () => {
+    if (schedules.length === 0) {
+      alert('目前沒有草稿可以發布！請先點擊「自動排班」或「新增」來建立草稿。');
+      return;
+    }
+    
+    // 如果全部都已發布，也不用發布了
+    if (schedules.every(s => s.status === '已發布')) {
+      alert('這個月的班表都已經發布過了！');
+      return;
+    }
+
     // 檢查是否有違反排班規則
     const violations = stats.filter(stat => 
       stat.maxConsecutiveDays > stat.rule.max_consecutive_days || 
