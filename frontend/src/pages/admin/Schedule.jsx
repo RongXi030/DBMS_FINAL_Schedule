@@ -400,7 +400,7 @@ export default function AdminSchedule() {
                 </span>
               ) : (
                 dayData.onDuty.map(sch => (
-                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-primary-500)', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-primary-500)', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: 'calc(50% - 2px)' }}>
                     <span 
                       onClick={() => openSwapModal({ ...sch, dateStr })}
                       style={{ 
