@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (account, password) => {
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch('https://dbms-final-schedule.onrender.com/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account, password })

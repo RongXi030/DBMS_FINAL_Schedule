@@ -20,19 +20,19 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const statsRes = await fetch('http://localhost:3000/api/reports/stats');
+      const statsRes = await fetch('https://dbms-final-schedule.onrender.com/api/reports/stats');
       const statsData = await statsRes.json();
       if (statsData.success) {
         setStats(statsData.stats);
       }
 
-      const leavesRes = await fetch('http://localhost:3000/api/leaves');
+      const leavesRes = await fetch('https://dbms-final-schedule.onrender.com/api/leaves');
       const leavesData = await leavesRes.json();
       if (leavesData.success) {
         setPendingLeaves(leavesData.leaves.filter(l => l.status === '審核中'));
       }
 
-      const todayRes = await fetch('http://localhost:3000/api/dashboard/today');
+      const todayRes = await fetch('https://dbms-final-schedule.onrender.com/api/dashboard/today');
       const todayJson = await todayRes.json();
       if (todayJson.success) {
         setTodayData(todayJson.data);
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
   };
 
   const fetchAbnormalList = () => {
-    fetch('http://localhost:3000/api/reports/abnormal-attendances')
+    fetch('https://dbms-final-schedule.onrender.com/api/reports/abnormal-attendances')
       .then(res => res.json())
       .then(data => {
         if (data.success) setAbnormalList(data.data);
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
 
   const handleAction = async (id, action) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/leaves/${action}`, {
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/leaves/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leave_id: id })
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
 
   const handleResolve = () => {
     if (!selectedAbnormal) return;
-    fetch(`http://localhost:3000/api/reports/abnormal-attendances/${selectedAbnormal.attendance_id}/resolve`, {
+    fetch(`https://dbms-final-schedule.onrender.com/api/reports/abnormal-attendances/${selectedAbnormal.attendance_id}/resolve`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ admin_approved_hours: approvedHours })
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   const handleSendReminder = async () => {
     if (!window.confirm('確定要手動發送「明日上班提醒」給明天有排班的員工嗎？')) return;
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/remind-tomorrow', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/remind-tomorrow', {
         method: 'POST'
       });
       const data = await res.json();

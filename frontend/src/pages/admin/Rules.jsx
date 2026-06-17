@@ -15,9 +15,9 @@ export default function Rules() {
   const fetchData = async () => {
     try {
       const [empRes, opRes, noLeaveRes] = await Promise.all([
-        fetch('http://localhost:3000/api/employee-rules'),
-        fetch('http://localhost:3000/api/operation-rules'),
-        fetch('http://localhost:3000/api/no-leave-periods')
+        fetch('https://dbms-final-schedule.onrender.com/api/employee-rules'),
+        fetch('https://dbms-final-schedule.onrender.com/api/operation-rules'),
+        fetch('https://dbms-final-schedule.onrender.com/api/no-leave-periods')
       ]);
       const empData = await empRes.json();
       const opData = await opRes.json();
@@ -59,7 +59,7 @@ export default function Rules() {
     if (activeTab === 'noleave') endpoint = `/no-leave-periods/${id}`;
 
     try {
-      const res = await fetch(`http://localhost:3000/api${endpoint}`, {
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api${endpoint}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -101,7 +101,7 @@ export default function Rules() {
       id = formData.period_id;
     }
 
-    const url = modalMode === 'add' ? `http://localhost:3000/api${endpoint}` : `http://localhost:3000/api${endpoint}/${id}`;
+    const url = modalMode === 'add' ? `https://dbms-final-schedule.onrender.com/api${endpoint}` : `https://dbms-final-schedule.onrender.com/api${endpoint}/${id}`;
     const method = modalMode === 'add' ? 'POST' : 'PUT';
 
     try {

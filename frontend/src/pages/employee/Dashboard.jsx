@@ -18,7 +18,7 @@ export default function EmployeeDashboard() {
   const fetchStatus = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/attendance/status/${user.employee_id}`);
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/attendance/status/${user.employee_id}`);
       const data = await res.json();
       if (data.success && data.record) {
         setStatus(data.record.status);
@@ -30,7 +30,7 @@ export default function EmployeeDashboard() {
       const targetM = currentTime.getMonth() + 1;
       const targetD = currentTime.getDate();
       const dateStr = `${targetY}-${String(targetM).padStart(2, '0')}-${String(targetD).padStart(2, '0')}`;
-      const resSch = await fetch(`http://localhost:3000/api/schedules?employee_id=${user.employee_id}&date=${dateStr}`);
+      const resSch = await fetch(`https://dbms-final-schedule.onrender.com/api/schedules?employee_id=${user.employee_id}&date=${dateStr}`);
       const dataSch = await resSch.json();
       if (dataSch.success && dataSch.schedules && dataSch.schedules.length > 0) {
         const publishedSch = dataSch.schedules.find(s => s.status === '已發布');
@@ -50,7 +50,7 @@ export default function EmployeeDashboard() {
   const handleClockIn = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/attendance/clock-in', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/attendance/clock-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employee_id: user.employee_id })
@@ -70,7 +70,7 @@ export default function EmployeeDashboard() {
   const handleClockOut = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/attendance/clock-out', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/attendance/clock-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employee_id: user.employee_id })

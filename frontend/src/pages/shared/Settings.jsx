@@ -31,7 +31,7 @@ export default function Settings() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/profile/update', {
+      const response = await fetch('https://dbms-final-schedule.onrender.com/api/profile/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -42,7 +42,7 @@ export default function AdminSchedule() {
 
   const fetchLogs = async () => {
     try {
-      const url = `http://localhost:3000/api/schedules/logs?year=${logYear}&month=${logMonth}${logSearchName ? '&employee_name='+encodeURIComponent(logSearchName) : ''}`;
+      const url = `https://dbms-final-schedule.onrender.com/api/schedules/logs?year=${logYear}&month=${logMonth}${logSearchName ? '&employee_name='+encodeURIComponent(logSearchName) : ''}`;
       const res = await fetch(url);
       const data = await res.json();
       if(data.success) setLogs(data.data);
@@ -53,13 +53,13 @@ export default function AdminSchedule() {
 
   const fetchData = async () => {
     try {
-      const resOp = await fetch('http://localhost:3000/api/operation-rules');
+      const resOp = await fetch('https://dbms-final-schedule.onrender.com/api/operation-rules');
       const dataOp = await resOp.json();
       if (dataOp.success) {
         setOpRules(dataOp.data || []);
         if (dataOp.data && dataOp.data.length > 0) setSelectedOpRule(dataOp.data[0].op_rule_id);
       }
-      const resEmp = await fetch('http://localhost:3000/api/employees');
+      const resEmp = await fetch('https://dbms-final-schedule.onrender.com/api/employees');
       const dataEmp = await resEmp.json();
       if (dataEmp.success) {
         setEmployees(dataEmp.data.filter(e => e.employment_status === '在職') || []);
@@ -71,13 +71,13 @@ export default function AdminSchedule() {
 
   const fetchSchedules = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/schedules?year=${targetYear}&month=${targetMonth}`);
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/schedules?year=${targetYear}&month=${targetMonth}`);
       const data = await res.json();
       if (data.success) {
         setSchedules(data.schedules);
         setMustAttendDates(data.mustAttendDates || []);
       }
-      const resStats = await fetch(`http://localhost:3000/api/schedules/stats?year=${targetYear}&month=${targetMonth}`);
+      const resStats = await fetch(`https://dbms-final-schedule.onrender.com/api/schedules/stats?year=${targetYear}&month=${targetMonth}`);
       const statsData = await resStats.json();
       if (statsData.success) {
         setStats(statsData.data);
@@ -101,7 +101,7 @@ export default function AdminSchedule() {
     if (!selectedOpRule) return alert('請先選擇營運規則');
     setGenerating(true);
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/generate', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ year: targetYear, month: targetMonth, op_rule_id: selectedOpRule })
@@ -175,7 +175,7 @@ export default function AdminSchedule() {
 
     setPublishing(true);
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/publish', { method: 'POST' });
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/publish', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         alert('班表已發佈！系統將自動排程發送上班通知提醒。');
@@ -200,7 +200,7 @@ export default function AdminSchedule() {
     e.preventDefault();
     if (!newEmpId) return alert('請選擇替換員工');
     try {
-      const res = await fetch(`http://localhost:3000/api/schedules/${swapTarget.schedule_id}/replace`, {
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/schedules/${swapTarget.schedule_id}/replace`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_employee_id: newEmpId, reason: swapReason, operator_id: JSON.parse(localStorage.getItem('currentUser'))?.employee_id })
@@ -226,7 +226,7 @@ export default function AdminSchedule() {
     if (!window.confirm(`確定要清空 ${targetYear} 年 ${targetMonth} 月的班表嗎？此動作無法復原！`)) return;
 
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/clear', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/clear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -257,7 +257,7 @@ export default function AdminSchedule() {
     if (isPublished && !addReason) return alert('已發布的班表新增必須填寫理由');
 
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/add-single', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/add-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -289,7 +289,7 @@ export default function AdminSchedule() {
     if (isPublished && !deleteReason) return alert('已發布的班表刪除必須填寫理由');
 
     try {
-      const res = await fetch('http://localhost:3000/api/schedules/delete-single', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/schedules/delete-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -13,7 +13,7 @@ export default function Reports() {
   const [detailedData, setDetailedData] = useState([]);
 
   const fetchStats = () => {
-    fetch(`http://localhost:3000/api/reports/stats?year=${year}&month=${month}`)
+    fetch(`https://dbms-final-schedule.onrender.com/api/reports/stats?year=${year}&month=${month}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setStats(data.stats);
@@ -22,7 +22,7 @@ export default function Reports() {
   };
 
   const fetchDetailedReport = () => {
-    fetch(`http://localhost:3000/api/reports/detailed?year=${year}&month=${month}`)
+    fetch(`https://dbms-final-schedule.onrender.com/api/reports/detailed?year=${year}&month=${month}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setDetailedData(data.data);

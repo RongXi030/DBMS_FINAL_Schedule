@@ -19,7 +19,7 @@ export default function LeaveForm() {
   const fetchLeaves = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/leaves?employee_id=${user.employee_id}`);
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/leaves?employee_id=${user.employee_id}`);
       const data = await res.json();
       if (data.success) {
         setLeaves(data.leaves);
@@ -32,7 +32,7 @@ export default function LeaveForm() {
   const fetchQuota = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/employees`);
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/employees`);
       const data = await res.json();
       if (data.success) {
         const me = data.employees.find(e => e.employee_id === user.employee_id);
@@ -80,7 +80,7 @@ export default function LeaveForm() {
     }
 
     try {
-      const res = await fetch('http://localhost:3000/api/leaves/apply', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/leaves/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -25,7 +25,7 @@ export default function Login() {
       return setError('兩次輸入的新密碼不一致');
     }
     try {
-      const res = await fetch('http://localhost:3000/api/setup-account', {
+      const res = await fetch('https://dbms-final-schedule.onrender.com/api/setup-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(setupData)

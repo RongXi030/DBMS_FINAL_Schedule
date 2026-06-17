@@ -12,7 +12,7 @@ export default function EmployeeSchedule() {
 
   useEffect(() => {
     if (user) {
-      fetch(`http://localhost:3000/api/schedules?employee_id=${user.employee_id}&year=${targetYear}&month=${targetMonth}`)
+      fetch(`https://dbms-final-schedule.onrender.com/api/schedules?employee_id=${user.employee_id}&year=${targetYear}&month=${targetMonth}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {

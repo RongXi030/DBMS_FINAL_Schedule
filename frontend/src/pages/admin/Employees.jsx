@@ -21,7 +21,7 @@ export default function Employees() {
   });
 
   const fetchEmployees = (query = '') => {
-    fetch(`http://localhost:3000/api/employees?search=${query}`)
+    fetch(`https://dbms-final-schedule.onrender.com/api/employees?search=${query}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -33,7 +33,7 @@ export default function Employees() {
 
   useEffect(() => {
     fetchEmployees();
-    fetch('http://localhost:3000/api/rules')
+    fetch('https://dbms-final-schedule.onrender.com/api/rules')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -80,7 +80,7 @@ export default function Employees() {
       if (!window.confirm('確定要變更員工的職位嗎？')) return;
     }
 
-    const url = modalMode === 'add' ? 'http://localhost:3000/api/employees' : `http://localhost:3000/api/employees/${formData.employee_id}`;
+    const url = modalMode === 'add' ? 'https://dbms-final-schedule.onrender.com/api/employees' : `https://dbms-final-schedule.onrender.com/api/employees/${formData.employee_id}`;
     const method = modalMode === 'add' ? 'POST' : 'PUT';
 
     try {
@@ -117,7 +117,7 @@ export default function Employees() {
   const handleResetPassword = async (id) => {
     if (!window.confirm('確定要將該員工的密碼重置為預設密碼 (password) 嗎？')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/employees/${id}/reset-password`, {
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/employees/${id}/reset-password`, {
         method: 'PUT'
       });
       const data = await res.json();
@@ -137,7 +137,7 @@ export default function Employees() {
 
     try {
       const emp = employees.find(e => e.employee_id === id);
-      const res = await fetch(`http://localhost:3000/api/employees/${id}`, {
+      const res = await fetch(`https://dbms-final-schedule.onrender.com/api/employees/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
