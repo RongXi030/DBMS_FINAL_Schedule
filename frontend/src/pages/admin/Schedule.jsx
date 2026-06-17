@@ -62,7 +62,7 @@ export default function AdminSchedule() {
       const resEmp = await fetch('https://dbms-final-schedule.onrender.com/api/employees');
       const dataEmp = await resEmp.json();
       if (dataEmp.success) {
-        setEmployees(dataEmp.data.filter(e => e.employment_status === '在職') || []);
+        setEmployees(dataEmp.employees.filter(e => e.employment_status === '在職') || []);
       }
     } catch (error) {
       console.error(error);
