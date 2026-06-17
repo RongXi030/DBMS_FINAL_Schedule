@@ -19,6 +19,15 @@ initCronJobs();
 // Main API Routes
 app.use('/api', apiRoutes);
 
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.execute('SELECT 1');
+    res.json({ success: true, db_host: process.env.DB_HOST ? 'Set' : 'Missing', db_name: process.env.DB_NAME });
+  } catch (error) {
+    res.json({ success: false, error: error.message, db_host: process.env.DB_HOST ? 'Set' : 'Missing', db_name: process.env.DB_NAME });
+  }
+});
+
 // 1. Authentication Login
 app.post('/api/login', async (req, res) => {
   const { account, password } = req.body;
