@@ -140,15 +140,15 @@ export default function AdminSchedule() {
 
     // 檢查是否有請假衝突
     const hasConflict = schedules.some(sch => 
-      leaves.some(l => 
-        l.employee_id === sch.employee_id && 
-        l.status === '已核准' && 
-        new Date(l.start_time).setHours(0,0,0,0) <= new Date(sch.schedule_date).getTime() && 
-        new Date(l.end_time).setHours(23,59,59,999) >= new Date(sch.schedule_date).getTime()
-      )
+      leaves.some(l => {
+        const lStart = new Date(l.start_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+        const lEnd = new Date(l.end_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+        const sDate = new Date(sch.schedule_date).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+        return l.employee_id === sch.employee_id && l.status === '已核准' && lStart <= sDate && lEnd >= sDate;
+      })
     );
     if (hasConflict) {
-      alert('有員工在排班日請假（紅色標記），請替換人員或刪除後再發布！');
+      alert('尚有請假衝突未解決，請替換或刪除紅色的排班後再進行發布！');
       return;
     }
 
@@ -420,7 +420,11 @@ export default function AdminSchedule() {
                 >
                   全體員工必到
                 </span>
-                {leaves.filter(l => l.status === '已核准' && new Date(l.start_time).setHours(0,0,0,0) <= new Date(dateStrYMD).getTime() && new Date(l.end_time).setHours(23,59,59,999) >= new Date(dateStrYMD).getTime()).map(l => {
+                {leaves.filter(l => {
+                  const lStart = new Date(l.start_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+                  const lEnd = new Date(l.end_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+                  return l.status === '已核准' && lStart <= dateStrYMD && lEnd >= dateStrYMD;
+                }).map(l => {
                    const emp = employees.find(e => e.employee_id === l.employee_id);
                    if (!emp) return null;
                    return (
@@ -432,12 +436,11 @@ export default function AdminSchedule() {
                 </>
               ) : (
                 dayData.onDuty.map(sch => {
-                  const isConflict = leaves.some(l => 
-                    l.employee_id === sch.employee_id && 
-                    l.status === '已核准' && 
-                    new Date(l.start_time).setHours(0,0,0,0) <= new Date(dateStrYMD).getTime() && 
-                    new Date(l.end_time).setHours(23,59,59,999) >= new Date(dateStrYMD).getTime()
-                  );
+                  const isConflict = leaves.some(l => {
+                    const lStart = new Date(l.start_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+                    const lEnd = new Date(l.end_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+                    return l.employee_id === sch.employee_id && l.status === '已核准' && lStart <= dateStrYMD && lEnd >= dateStrYMD;
+                  });
                   return (
                   <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: isConflict ? '#ef4444' : 'var(--color-primary-500)', border: isConflict ? '2px solid #b91c1c' : 'none', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: 'calc(50% - 2px)' }}>
                     <span 

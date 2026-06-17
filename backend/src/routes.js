@@ -412,7 +412,11 @@ router.post('/schedules/generate', async (req, res) => {
       }
 
       const availableEmps = emps.filter(emp => {
-        return !approvedLeaves.some(leave => leave.employee_id === emp.employee_id && new Date(leave.start_time) <= d && new Date(leave.end_time) >= d);
+        return !approvedLeaves.some(leave => {
+          const lStart = new Date(leave.start_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+          const lEnd = new Date(leave.end_time).toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+          return leave.employee_id === emp.employee_id && lStart <= dateStr && lEnd >= dateStr;
+        });
       });
 
       let assignedIds = [];
