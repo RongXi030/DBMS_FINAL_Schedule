@@ -44,9 +44,25 @@ export const sendWelcomeEmail = async (email, employeeName, account, password) =
 /**
  * 發布班表時的信件通知（只包含該員工要上班的日期）
  */
-export const sendSchedulePublishEmail = async (email, employeeName, scheduledDates) => {
+export const sendSchedulePublishEmail = async (email, employeeName, shifts) => {
   if (!email) return; // 沒有信箱就不發
-  const datesList = scheduledDates.map(d => `<li>${new Date(d).toLocaleDateString('zh-TW')}</li>`).join('');
+
+  // 依照日期排序
+  shifts.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const shiftsList = shifts.map(s => {
+    // start_time / end_time might be "09:00:00" from DB, slice to "09:00"
+    const start = s.start_time ? s.start_time.substring(0, 5) : '';
+    const end = s.end_time ? s.end_time.substring(0, 5) : '';
+    return `
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${new Date(s.date).toLocaleDateString('zh-TW')}</td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${start}</td>
+        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${end}</td>
+      </tr>
+    `;
+  }).join('');
+
   const mailOptions = {
     from: `"排班系統通知" <${process.env.SMTP_USER}>`,
     to: email,
@@ -54,9 +70,18 @@ export const sendSchedulePublishEmail = async (email, employeeName, scheduledDat
     html: `
       <h3>親愛的 ${employeeName} 您好：</h3>
       <p>最新的班表已經發布。以下是您被安排的出勤日期：</p>
-      <ul>
-        ${datesList}
-      </ul>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; text-align: center;">日期</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; text-align: center;">上班時間</th>
+            <th style="border: 1px solid #ddd; padding: 8px; background-color: #f2f2f2; text-align: center;">下班時間</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${shiftsList}
+        </tbody>
+      </table>
       <p>請登入系統查看詳細資訊。</p>
       <br/>
       <p>系統自動發送，請勿直接回覆。</p>

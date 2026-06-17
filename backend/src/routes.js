@@ -665,9 +665,10 @@ router.get('/schedules/logs', async (req, res) => {
 router.post('/schedules/publish', async (req, res) => {
   try {
     const [drafts] = await db.execute(`
-      SELECT s.employee_id, s.schedule_date, e.email, e.first_name, e.last_name 
+      SELECT s.employee_id, s.schedule_date, e.email, e.first_name, e.last_name, o.start_time, o.end_time
       FROM Schedules s
       JOIN Employees e ON s.employee_id = e.employee_id
+      JOIN OperationRules o ON s.op_rule_id = o.op_rule_id
       WHERE s.status = '草稿'
     `);
 
@@ -677,19 +678,23 @@ router.post('/schedules/publish', async (req, res) => {
         empSchedules[draft.employee_id] = {
           email: draft.email,
           name: `${draft.last_name}${draft.first_name}`,
-          dates: []
+          shifts: []
         };
       }
-      empSchedules[draft.employee_id].dates.push(draft.schedule_date);
+      empSchedules[draft.employee_id].shifts.push({
+        date: draft.schedule_date,
+        start_time: draft.start_time,
+        end_time: draft.end_time
+      });
     }
 
     // 背景依序發送信件，避免同時發送過多被 Gmail 擋下
     (async () => {
       for (const empId in empSchedules) {
-        const { email, name, dates } = empSchedules[empId];
+        const { email, name, shifts } = empSchedules[empId];
         if (email) {
           try {
-            await sendSchedulePublishEmail(email, name, dates);
+            await sendSchedulePublishEmail(email, name, shifts);
           } catch (e) {
             console.error('Email error:', e);
           }

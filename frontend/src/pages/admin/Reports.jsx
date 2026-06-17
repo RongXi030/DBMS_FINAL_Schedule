@@ -36,8 +36,8 @@ export default function Reports() {
   }, [year, month]);
 
   const avgAttendance = detailedData.length ? (detailedData.reduce((acc, curr) => acc + curr.attendanceRate, 0) / detailedData.length).toFixed(1) : 0;
-  const totalHours = detailedData.reduce((acc, curr) => acc + curr.totalActualHours, 0);
-  const totalOvertime = detailedData.reduce((acc, curr) => acc + curr.totalOvertimeHours, 0);
+  const totalHours = detailedData.reduce((acc, curr) => acc + curr.totalActualHours, 0).toFixed(1);
+  const totalOvertime = detailedData.reduce((acc, curr) => acc + curr.totalOvertimeHours, 0).toFixed(1);
   const totalAbnormal = detailedData.reduce((acc, curr) => acc + curr.abnormal.late + curr.abnormal.early + curr.abnormal.absent, 0);
 
   const topAbnormal = [...detailedData]
