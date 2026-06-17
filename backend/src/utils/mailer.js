@@ -13,6 +13,35 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * 員工建立時的歡迎通知
+ */
+export const sendWelcomeEmail = async (email, employeeName, account, password) => {
+  if (!email) return;
+  const mailOptions = {
+    from: `"排班系統通知" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: '您的員工帳號已建立',
+    html: `
+      <h3>親愛的 ${employeeName} 您好：</h3>
+      <p>您的員工帳號已成功建立。以下是您的登入資訊：</p>
+      <ul>
+        <li><strong>帳號：</strong> ${account}</li>
+        <li><strong>預設密碼：</strong> ${password}</li>
+      </ul>
+      <p>登入後請盡速修改密碼及電話等聯絡資訊。</p>
+      <br/>
+      <p>系統自動發送，請勿直接回覆。</p>
+    `
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Successfully sent welcome email to ${email}`);
+  } catch (error) {
+    console.error(`Failed to send welcome email to ${email}:`, error.message);
+  }
+};
+
+/**
  * 發布班表時的信件通知（只包含該員工要上班的日期）
  */
 export const sendSchedulePublishEmail = async (email, employeeName, scheduledDates) => {

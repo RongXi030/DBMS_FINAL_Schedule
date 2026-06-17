@@ -49,7 +49,7 @@ export default function Employees() {
 
   const openAddModal = () => {
     setModalMode('add');
-    setFormData({ last_name: '', first_name: '', position: '員工', gender: 'M', employment_status: '在職', remaining_special_leave_days: 0, rule_id: '' });
+    setFormData({ last_name: '', first_name: '', position: '員工', gender: 'M', employment_status: '在職', remaining_special_leave_days: 0, email: '', phone_number: '', rule_id: '' });
     setIsModalOpen(true);
   };
 
@@ -147,6 +147,8 @@ export default function Employees() {
           last_name: emp.last_name,
           first_name: emp.first_name,
           gender: emp.gender,
+          email: emp.email,
+          phone_number: emp.phone_number,
           rule_id: emp.rule_id
         })
       });
@@ -279,6 +281,17 @@ export default function Employees() {
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>名字</label>
                   <input type="text" className="input-field" value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} required />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>電子郵件</label>
+                  <input type="email" className="input-field" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="選填" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>電話號碼</label>
+                  <input type="text" className="input-field" value={formData.phone_number} onChange={e => setFormData({ ...formData, phone_number: e.target.value })} placeholder="選填" />
                 </div>
               </div>
 

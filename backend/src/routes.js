@@ -1,6 +1,6 @@
 import express from 'express';
 import db from './config/db.js';
-import { sendSchedulePublishEmail, sendLeaveApplicationEmail, sendLeaveReviewEmail } from './utils/mailer.js';
+import { sendSchedulePublishEmail, sendLeaveApplicationEmail, sendLeaveReviewEmail, sendWelcomeEmail } from './utils/mailer.js';
 import { triggerTomorrowReminders } from './cron/shiftReminder.js';
 
 const router = express.Router();
@@ -24,7 +24,7 @@ router.get('/employees', async (req, res) => {
 });
 
 router.post('/employees', async (req, res) => {
-  const { last_name, first_name, position, gender, hire_date, employment_status, remaining_special_leave_days, rule_id } = req.body;
+  const { last_name, first_name, position, gender, hire_date, employment_status, remaining_special_leave_days, rule_id, email, phone_number } = req.body;
   try {
     const today = hire_date ? new Date(hire_date) : new Date();
     const rocYear = today.getFullYear() - 1911;
@@ -43,10 +43,14 @@ router.post('/employees', async (req, res) => {
     const password = 'password';
 
     await db.execute(
-      `INSERT INTO Employees (last_name, first_name, position, account, password, gender, hire_date, employment_status, remaining_special_leave_days, rule_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [last_name, first_name, position, account, password, gender, today, employment_status, remaining_special_leave_days || 0, rule_id || null]
+      `INSERT INTO Employees (last_name, first_name, position, account, password, gender, hire_date, employment_status, remaining_special_leave_days, rule_id, email, phone_number)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [last_name, first_name, position, account, password, gender, today, employment_status, remaining_special_leave_days || 0, rule_id || null, email || null, phone_number || null]
     );
+
+    if (email) {
+      await sendWelcomeEmail(email, `${last_name}${first_name}`, account, password);
+    }
     res.json({ success: true, account });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -55,11 +59,11 @@ router.post('/employees', async (req, res) => {
 
 router.put('/employees/:id', async (req, res) => {
   const { id } = req.params;
-  const { employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id } = req.body;
+  const { employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id, email, phone_number } = req.body;
   try {
     await db.execute(
-      `UPDATE Employees SET employment_status = ?, position = ?, remaining_special_leave_days = ?, last_name = ?, first_name = ?, gender = ?, rule_id = ? WHERE employee_id = ?`,
-      [employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id || null, id]
+      `UPDATE Employees SET employment_status = ?, position = ?, remaining_special_leave_days = ?, last_name = ?, first_name = ?, gender = ?, rule_id = ?, email = ?, phone_number = ? WHERE employee_id = ?`,
+      [employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id || null, email || null, phone_number || null, id]
     );
     res.json({ success: true });
   } catch (error) {
