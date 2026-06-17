@@ -5,7 +5,7 @@ import { Clock, Play, Square } from 'lucide-react';
 export default function EmployeeDashboard() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [status, setStatus] = useState('未打卡');
+  const [attendanceRecord, setAttendanceRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -21,9 +21,9 @@ export default function EmployeeDashboard() {
       const res = await fetch(`https://dbms-final-schedule.onrender.com/api/attendance/status/${user.employee_id}`);
       const data = await res.json();
       if (data.success && data.record) {
-        setStatus(data.record.status);
+        setAttendanceRecord(data.record);
       } else {
-        setStatus('未打卡');
+        setAttendanceRecord(null);
       }
 
       const targetY = currentTime.getFullYear();
@@ -96,6 +96,22 @@ export default function EmployeeDashboard() {
     );
   }
 
+  let displayStatus = '-';
+  if (attendanceRecord) {
+    displayStatus = attendanceRecord.status;
+  } else if (todaySchedule && todaySchedule.start_time) {
+    const now = currentTime;
+    const [sh, sm] = todaySchedule.start_time.split(':');
+    const shiftStart = new Date(now);
+    shiftStart.setHours(parseInt(sh), parseInt(sm), 0, 0);
+    const diffMinutes = (shiftStart - now) / 60000;
+    if (diffMinutes <= 15) {
+      displayStatus = '未打卡';
+    } else {
+      displayStatus = '-';
+    }
+  }
+
   return (
     <div className="fade-in">
       <div style={{ marginBottom: 'var(--space-4)' }}>
@@ -115,23 +131,23 @@ export default function EmployeeDashboard() {
             {currentTime.toLocaleTimeString('zh-TW', { hour12: false })}
           </div>
           <div style={{ marginBottom: 'var(--space-4)', color: 'var(--color-text-secondary)' }}>
-            當前狀態：<span style={{ fontWeight: 600, color: status === '值班中' ? '#10b981' : (status === '下班' ? '#94a3b8' : 'var(--color-text-primary)') }}>{status}</span>
+            當前狀態：<span style={{ fontWeight: 600, color: displayStatus === '值班中' ? '#10b981' : (displayStatus === '下班' ? '#94a3b8' : 'var(--color-text-primary)') }}>{displayStatus}</span>
           </div>
           
           <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'center' }}>
             <button 
               onClick={handleClockIn} 
-              disabled={!todaySchedule || status === '值班中' || status === '下班' || loading}
+              disabled={displayStatus !== '未打卡' || loading}
               className="btn btn-primary" 
-              style={{ width: '130px', opacity: (!todaySchedule || status === '值班中' || status === '下班') ? 0.5 : 1 }}
+              style={{ width: '130px', opacity: displayStatus !== '未打卡' ? 0.5 : 1 }}
             >
               <Play size={18} /> 上班打卡
             </button>
             <button 
               onClick={handleClockOut} 
-              disabled={status !== '值班中' || loading}
+              disabled={displayStatus !== '值班中' || loading}
               className="btn btn-secondary" 
-              style={{ width: '130px', opacity: status !== '值班中' ? 0.5 : 1 }}
+              style={{ width: '130px', opacity: displayStatus !== '值班中' ? 0.5 : 1 }}
             >
               <Square size={18} /> 下班打卡
             </button>
@@ -150,7 +166,7 @@ export default function EmployeeDashboard() {
           }}>
             {todaySchedule ? (
               <>
-                <div style={{ marginBottom: '8px', fontWeight: 600, color: 'var(--color-primary-800)' }}>正常排班</div>
+                <div style={{ marginBottom: '8px', fontWeight: 600, color: 'var(--color-primary-800)' }}>正常排班 ({todaySchedule.start_time?.slice(0,5)} - {todaySchedule.end_time?.slice(0,5)})</div>
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-primary-700)' }}>請依據排班時間打卡</p>
               </>
             ) : (

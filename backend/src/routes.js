@@ -98,7 +98,7 @@ router.post('/attendance/clock-in', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const [schedules] = await db.execute(
-      `SELECT * FROM Schedules WHERE employee_id = ? AND schedule_date = ?`,
+      `SELECT s.*, o.start_time FROM Schedules s JOIN OperationRules o ON s.op_rule_id = o.op_rule_id WHERE s.employee_id = ? AND s.schedule_date = ? AND s.status = '已發布'`,
       [employee_id, today]
     );
 
@@ -107,6 +107,16 @@ router.post('/attendance/clock-in', async (req, res) => {
     }
 
     const clockInTime = new Date();
+    if (schedules[0].start_time) {
+      const [sh, sm] = schedules[0].start_time.split(':');
+      const shiftStart = new Date(clockInTime);
+      shiftStart.setHours(parseInt(sh), parseInt(sm), 0, 0);
+      const diffMinutes = (shiftStart - clockInTime) / 60000;
+      if (diffMinutes > 15) {
+        return res.status(400).json({ success: false, message: '尚未開放打卡，請於上班前 15 分鐘內再試' });
+      }
+    }
+
     await db.execute(
       `INSERT INTO Attendances (employee_id, schedule_id, clock_in_time, status) VALUES (?, ?, ?, ?)`,
       [employee_id, schedules[0].schedule_id, clockInTime, '值班中']
@@ -295,7 +305,7 @@ router.post('/leaves/reject', async (req, res) => {
 router.get('/schedules', async (req, res) => {
   const { employee_id, date, year, month } = req.query;
   try {
-    let query = 'SELECT s.*, e.last_name, e.first_name FROM Schedules s JOIN Employees e ON s.employee_id = e.employee_id WHERE 1=1';
+    let query = 'SELECT s.*, e.last_name, e.first_name, o.start_time, o.end_time FROM Schedules s JOIN Employees e ON s.employee_id = e.employee_id LEFT JOIN OperationRules o ON s.op_rule_id = o.op_rule_id WHERE 1=1';
     let params = [];
     if (employee_id) { query += ' AND s.employee_id = ?'; params.push(employee_id); }
     if (date) { query += ' AND s.schedule_date = ?'; params.push(date); }
