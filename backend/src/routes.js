@@ -12,7 +12,7 @@ router.get('/employees', async (req, res) => {
     let query = 'SELECT * FROM Employees';
     let params = [];
     if (search) {
-      query += ' WHERE CONCAT(IFNULL(last_name,""), IFNULL(first_name,"")) LIKE ? OR account LIKE ?';
+      query += ' WHERE CONCAT(IFNULL(last_name,\'\'), IFNULL(first_name,\'\')) LIKE ? OR account LIKE ?';
       const searchStr = `%${search}%`;
       params = [searchStr, searchStr];
     }
@@ -30,7 +30,7 @@ router.post('/employees', async (req, res) => {
     const rocYear = today.getFullYear() - 1911;
     const prefix = `user${rocYear}`;
 
-    const [rows] = await db.execute(`SELECT account FROM Employees WHERE account LIKE ? ORDER BY account DESC LIMIT 1`, [`${prefix}%`]);
+    const [rows] = await db.execute('SELECT account FROM Employees WHERE account LIKE ? ORDER BY account DESC LIMIT 1', [`${prefix}%`]);
     let nextSeq = 1;
     if (rows.length > 0) {
       const lastAccount = rows[0].account;
@@ -43,8 +43,7 @@ router.post('/employees', async (req, res) => {
     const password = 'password';
 
     await db.execute(
-      `INSERT INTO Employees (last_name, first_name, position, account, password, gender, hire_date, employment_status, remaining_special_leave_days, rule_id, email, phone_number)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      'INSERT INTO Employees (last_name, first_name, position, account, password, gender, hire_date, employment_status, remaining_special_leave_days, rule_id, email, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [last_name, first_name, position, account, password, gender, today, employment_status, remaining_special_leave_days || 0, rule_id || null, email || null, phone_number || null]
     );
 
@@ -60,8 +59,8 @@ router.post('/employees', async (req, res) => {
 router.put('/employees/:id/reset-password', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.execute('UPDATE Employees SET password = "password" WHERE employee_id = ?', [id]);
-    res.json({ success: true });
+    await db.execute('UPDATE Employees SET password = \'password\' WHERE employee_id = ?', [id]);
+    res.json({ success: true, message: '密碼已重置為 password' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1077,7 +1076,7 @@ router.delete('/operation-rules/:id', async (req, res) => {
 // 3. NoLeavePeriods (禁止排休期間)
 router.get('/no-leave-periods', async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT period_id, DATE_FORMAT(start_date, "%Y-%m-%d") as start_date, DATE_FORMAT(end_date, "%Y-%m-%d") as end_date, reason FROM NoLeavePeriods');
+    const [rows] = await db.execute("SELECT period_id, DATE_FORMAT(start_date, '%Y-%m-%d') as start_date, DATE_FORMAT(end_date, '%Y-%m-%d') as end_date, reason FROM NoLeavePeriods");
     res.json({ success: true, data: rows });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
