@@ -16,6 +16,15 @@ export default function LeaveForm() {
   const [successMsg, setSuccessMsg] = useState('');
   const [remainingDays, setRemainingDays] = useState(0);
 
+  if (user?.position === '管理者' && !user?.rule_id) {
+    return (
+      <div className="fade-in card glass-panel" style={{ textAlign: 'center', padding: 'var(--space-6)', marginTop: '20px' }}>
+        <h2 style={{ marginBottom: '16px', color: '#64748b' }}>不參與排班，無法開啟</h2>
+        <p style={{ color: '#94a3b8' }}>您的管理者帳號並未綁定「員工規則」，因此不列入排班與請假系統中。</p>
+      </div>
+    );
+  }
+
   const fetchLeaves = async () => {
     if (!user) return;
     try {

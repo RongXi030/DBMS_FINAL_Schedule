@@ -50,6 +50,7 @@ function AppRoutes() {
       <Route path="/admin" element={<ProtectedRoute allowedRole="管理者"><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="clock-in" element={<EmployeeDashboard />} />
+        <Route path="leave" element={<LeaveForm />} />
         <Route path="employees" element={<Employees />} />
         <Route path="rules" element={<Rules />} />
         <Route path="schedule" element={<AdminSchedule />} />

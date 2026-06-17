@@ -16,6 +16,7 @@ export default function Layout() {
   const adminLinks = [
     { path: '/admin/dashboard', label: '儀表板', icon: <LayoutDashboard size={20} /> },
     { path: '/admin/clock-in', label: '打卡系統', icon: <Clock size={20} /> },
+    { path: '/admin/leave', label: '請假申請', icon: <FileText size={20} /> },
     { path: '/admin/employees', label: '員工管理', icon: <Users size={20} /> },
     { path: '/admin/rules', label: '排班規則', icon: <Settings size={20} /> },
     { path: '/admin/schedule', label: '班表管理', icon: <Calendar size={20} /> },
