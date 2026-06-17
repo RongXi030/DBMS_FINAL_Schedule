@@ -128,20 +128,63 @@ export default function AdminDashboard() {
   const getDerivedStatus = (sch) => {
     if (!sch.is_on_duty) return { label: '休假', className: 'bg-blue-100 text-blue-800', icon: '🔵' };
     if (sch.attendance_status === '請假') return { label: '休假', className: 'bg-blue-100 text-blue-800', icon: '🔵' };
-    if (sch.clock_in_time) return { label: '已打卡', className: 'bg-green-100 text-green-800', icon: '🟢' };
 
-    if (sch.start_time) {
-      const now = new Date();
-      const [hours, minutes] = sch.start_time.split(':');
-      const startTime = new Date();
-      startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      // Let's add a 15 min grace period for late
-      startTime.setMinutes(startTime.getMinutes() + 15);
-      if (now > startTime) {
+    const now = new Date();
+    let startTime = new Date();
+    let endTime = new Date();
+    
+    if (sch.start_time && sch.end_time) {
+      const [sh, sm] = sch.start_time.split(':');
+      startTime.setHours(parseInt(sh), parseInt(sm), 0, 0);
+      const [eh, em] = sch.end_time.split(':');
+      endTime.setHours(parseInt(eh), parseInt(em), 0, 0);
+    }
+
+    const clockIn = sch.clock_in_time ? new Date(sch.clock_in_time) : null;
+    const clockOut = sch.clock_out_time ? new Date(sch.clock_out_time) : null;
+
+    const startTimeMinus15 = new Date(startTime.getTime() - 15 * 60000);
+    const startTimePlus15 = new Date(startTime.getTime() + 15 * 60000);
+
+    const isLateIn = clockIn ? (clockIn > startTimePlus15) : (now > startTimePlus15);
+    const isEarlyOut = clockOut ? (clockOut < endTime) : false;
+
+    // 尚未打卡
+    if (!clockIn) {
+      if (now < startTimeMinus15) {
+        return { label: '-', className: 'bg-gray-100 text-gray-500', icon: '⚪' };
+      }
+      if (now >= startTimeMinus15 && now <= startTimePlus15) {
+        return { label: '未打卡', className: 'bg-yellow-100 text-yellow-800', icon: '⚠️' };
+      }
+      if (now > startTimePlus15) {
         return { label: '遲到', className: 'bg-red-100 text-red-800', icon: '🔴' };
       }
     }
-    return { label: '尚未到班', className: 'bg-gray-100 text-gray-800', icon: '⚪' };
+
+    // 已打卡，未下班
+    if (clockIn && !clockOut) {
+      if (isLateIn) {
+        return { label: '遲到', className: 'bg-red-100 text-red-800', icon: '🔴' };
+      }
+      return { label: '值班中', className: 'bg-green-100 text-green-800', icon: '🟢' };
+    }
+
+    // 已下班
+    if (clockIn && clockOut) {
+      if (isLateIn && isEarlyOut) {
+        return { label: '遲到且早退', className: 'bg-red-100 text-red-800', icon: '🔴' };
+      }
+      if (isLateIn && !isEarlyOut) {
+        return { label: '遲到且已下班', className: 'bg-yellow-100 text-yellow-800', icon: '🟡' };
+      }
+      if (!isLateIn && isEarlyOut) {
+        return { label: '早退', className: 'bg-orange-100 text-orange-800', icon: '🟠' };
+      }
+      return { label: '下班', className: 'bg-gray-100 text-gray-800', icon: '⚫' };
+    }
+
+    return { label: '未知', className: 'bg-gray-100 text-gray-800', icon: '❓' };
   };
 
   const formatTime = (dateStr) => {
@@ -155,7 +198,10 @@ export default function AdminDashboard() {
   const lateOrNotArrived = todayScheduled.filter(sch => !sch.clock_in_time);
   const lateOrNotArrivedCount = lateOrNotArrived.length;
 
-  const todayAbnormalCount = todayScheduled.filter(sch => getDerivedStatus(sch).label === '遲到').length;
+  const todayAbnormalCount = todayScheduled.filter(sch => {
+    const label = getDerivedStatus(sch).label;
+    return label.includes('遲到') || label.includes('早退');
+  }).length;
 
   const progressPercent = expectedCount === 0 ? 0 : Math.round((clockedInCount / expectedCount) * 100);
 
