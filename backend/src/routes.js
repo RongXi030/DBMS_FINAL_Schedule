@@ -691,7 +691,7 @@ router.get('/reports/detailed', async (req, res) => {
   const endStr = `${nextMonthFirst.getFullYear()}-${String(nextMonthFirst.getMonth() + 1).padStart(2, '0')}-01`;
 
   try {
-    const [emps] = await db.execute(`SELECT employee_id, last_name, first_name FROM Employees WHERE employment_status = '在職'`);
+    const [emps] = await db.execute(`SELECT employee_id, last_name, first_name FROM Employees WHERE employment_status = '在職' AND rule_id IS NOT NULL`);
 
     // 獲取所有相關紀錄
     const [schedules] = await db.execute(`
@@ -888,7 +888,7 @@ router.get('/dashboard/today', async (req, res) => {
 router.get('/reports/stats', async (req, res) => {
   try {
     const { year, month } = req.query;
-    const [emps] = await db.execute(`SELECT COUNT(*) as count FROM Employees WHERE employment_status = '在職'`);
+    const [emps] = await db.execute(`SELECT COUNT(*) as count FROM Employees WHERE employment_status = '在職' AND rule_id IS NOT NULL`);
     const [leaves] = await db.execute(`SELECT COUNT(*) as count FROM LeaveRecords WHERE status = '審核中'`);
 
     let abnormalCount = 0;
