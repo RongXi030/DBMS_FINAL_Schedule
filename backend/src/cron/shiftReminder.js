@@ -4,9 +4,9 @@ import { sendTomorrowShiftReminder } from '../utils/mailer.js';
 
 export const triggerTomorrowReminders = async () => {
   try {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+    const tzNow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Taipei"}));
+    tzNow.setDate(tzNow.getDate() + 1);
+    const tomorrowStr = `${tzNow.getFullYear()}-${String(tzNow.getMonth() + 1).padStart(2, '0')}-${String(tzNow.getDate()).padStart(2, '0')}`;
 
     const [schedules] = await db.execute(`
       SELECT s.employee_id, s.schedule_date, e.email, e.first_name, e.last_name 
