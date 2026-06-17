@@ -21,10 +21,7 @@ export default function AdminDashboard() {
   const [historyPage, setHistoryPage] = useState(1);
   const HISTORY_PER_PAGE = 5;
 
-  const [abnormalList, setAbnormalList] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAbnormal, setSelectedAbnormal] = useState(null);
-  const [approvedHours, setApprovedHours] = useState('');
+
   const [selectedLeave, setSelectedLeave] = useState(null);
 
   const [todayData, setTodayData] = useState([]);
@@ -54,18 +51,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchAbnormalList = () => {
-    fetch('https://dbms-final-schedule.onrender.com/api/reports/abnormal-attendances')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setAbnormalList(data.data);
-      })
-      .catch(e => console.error(e));
-  };
+
 
   useEffect(() => {
     fetchData();
-    fetchAbnormalList();
     // Refresh today data every minute
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
@@ -96,27 +85,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleResolve = () => {
-    if (!selectedAbnormal) return;
-    fetch(`https://dbms-final-schedule.onrender.com/api/reports/abnormal-attendances/${selectedAbnormal.attendance_id}/resolve`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ admin_approved_hours: approvedHours })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert('異常已排除並核准工時');
-          setIsModalOpen(false);
-          setSelectedAbnormal(null);
-          setApprovedHours('');
-          fetchAbnormalList();
-          fetchData();
-        } else {
-          alert(data.message);
-        }
-      });
-  };
+
 
   const handleSendReminder = async () => {
     if (!window.confirm('確定要手動發送「明日上班提醒」給明天有排班的員工嗎？')) return;
@@ -225,9 +194,6 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
           <button className="btn" style={{ backgroundColor: '#f59e0b', color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={handleSendReminder}>
             <Mail size={18} /> 發送明日提醒
-          </button>
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-            處理異常出勤 ({abnormalList.length})
           </button>
         </div>
       </div>
@@ -385,114 +351,6 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {isModalOpen && typeof document !== 'undefined' && createPortal(
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div className="card fade-in" style={{
-            backgroundColor: 'var(--color-surface)',
-            width: '100%', maxWidth: '800px', margin: '0 20px', position: 'relative',
-            maxHeight: '90vh', overflowY: 'auto', overflowX: 'hidden', boxSizing: 'border-box',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
-            >
-              <X size={24} />
-            </button>
-            <h3 style={{ fontSize: '1.4rem', marginBottom: 'var(--space-4)' }}>異常出勤排除處理</h3>
-
-            <div className="modal-body">
-              <p style={{ marginBottom: 'var(--space-4)', color: 'var(--color-text-secondary)' }}>
-                以下為超時下班被系統標記為異常的紀錄。請核實真實加班情況並給予實際工時。
-              </p>
-
-              <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
-                <div style={{ flex: '1', borderRight: '1px solid var(--color-border)', paddingRight: 'var(--space-4)' }}>
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {abnormalList.map(item => (
-                      <li
-                        key={item.attendance_id}
-                        onClick={() => setSelectedAbnormal(item)}
-                        style={{
-                          padding: 'var(--space-3)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: 'var(--radius-md)',
-                          marginBottom: '8px',
-                          cursor: 'pointer',
-                          background: selectedAbnormal?.attendance_id === item.attendance_id ? 'var(--color-primary-50)' : 'transparent',
-                          borderColor: selectedAbnormal?.attendance_id === item.attendance_id ? 'var(--color-primary)' : 'var(--color-border)'
-                        }}
-                      >
-                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>{item.employee_name}</div>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
-                          日期：{new Date(item.schedule_date).toLocaleDateString()}
-                        </div>
-                      </li>
-                    ))}
-                    {abnormalList.length === 0 && (
-                      <li style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 'var(--space-4)' }}>目前無未處理的異常紀錄</li>
-                    )}
-                  </ul>
-                </div>
-
-                <div style={{ flex: '1' }}>
-                  {selectedAbnormal ? (
-                    <div>
-                      <h3 style={{ marginBottom: '16px' }}>排除異常: {selectedAbnormal.employee_name}</h3>
-
-                      <div style={{ marginBottom: '16px', padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
-                        <div style={{ marginBottom: '8px' }}>
-                          <span style={{ color: 'var(--color-text-secondary)' }}>班表預定：</span>
-                          {selectedAbnormal.schedule_start.slice(0, 5)} ~ {selectedAbnormal.schedule_end.slice(0, 5)}
-                        </div>
-                        <div style={{ marginBottom: '8px' }}>
-                          <span style={{ color: 'var(--color-text-secondary)' }}>實際打卡：</span>
-                          {selectedAbnormal.clock_in_time ? new Date(selectedAbnormal.clock_in_time).toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '--:--'} ~
-                          {selectedAbnormal.clock_out_time ? new Date(selectedAbnormal.clock_out_time).toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                        </div>
-                      </div>
-
-                      <div style={{ marginBottom: '24px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-                          核准實際工時 (小時)：
-                        </label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          className="form-input"
-                          value={approvedHours}
-                          onChange={(e) => setApprovedHours(e.target.value)}
-                          placeholder="例如: 8.5"
-                        />
-                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
-                          輸入主管確認後該員工當日真實的工作總時數。系統將以此數值計算薪資與加班費。
-                        </p>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button className="btn btn-secondary" onClick={() => setSelectedAbnormal(null)}>取消</button>
-                        <button className="btn btn-primary" onClick={handleResolve} disabled={!approvedHours}>
-                          <Save size={18} /> 確認排除
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)' }}>
-                      請從左側選擇一筆異常紀錄進行處理
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {selectedLeave && typeof document !== 'undefined' && createPortal(
         <div style={{

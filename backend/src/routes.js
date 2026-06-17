@@ -852,40 +852,7 @@ router.get('/reports/detailed', async (req, res) => {
   }
 });
 
-router.get('/reports/abnormal-attendances', async (req, res) => {
-  try {
-    const [rows] = await db.execute(`
-      SELECT a.attendance_id, a.clock_in_time, a.clock_out_time, a.status, a.is_abnormal_resolved,
-             e.last_name, e.first_name, s.schedule_date, r.start_time, r.end_time
-      FROM Attendances a
-      JOIN Employees e ON a.employee_id = e.employee_id
-      JOIN Schedules s ON a.schedule_id = s.schedule_id
-      JOIN OperationRules r ON s.op_rule_id = r.op_rule_id
-      WHERE a.is_abnormal = TRUE AND a.is_abnormal_resolved = FALSE
-      ORDER BY a.clock_out_time DESC
-    `);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-router.put('/reports/abnormal-attendances/:id/resolve', async (req, res) => {
-  const { id } = req.params;
-  const { admin_approved_hours } = req.body;
-  if (admin_approved_hours === undefined) return res.status(400).json({ success: false, message: '請提供核准工時' });
-
-  try {
-    await db.execute(`
-      UPDATE Attendances 
-      SET is_abnormal_resolved = TRUE, admin_approved_hours = ? 
-      WHERE attendance_id = ?
-    `, [admin_approved_hours, id]);
-    res.json({ success: true, message: '異常已排除' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 // ----------------------------------------
 
 router.get('/dashboard/today', async (req, res) => {
