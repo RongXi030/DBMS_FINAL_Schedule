@@ -7,6 +7,7 @@ export default function AdminSchedule() {
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [schedules, setSchedules] = useState([]);
+  const [leaves, setLeaves] = useState([]);
   const [stats, setStats] = useState([]);
   const [employees, setEmployees] = useState([]);
   
@@ -82,6 +83,12 @@ export default function AdminSchedule() {
       if (statsData.success) {
         setStats(statsData.data);
       }
+      
+      const resLeaves = await fetch('https://dbms-final-schedule.onrender.com/api/leaves');
+      const leavesData = await resLeaves.json();
+      if (leavesData.success) {
+        setLeaves(leavesData.leaves || []);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -128,6 +135,20 @@ export default function AdminSchedule() {
     // 如果全部都已發布，也不用發布了
     if (schedules.every(s => s.status === '已發布')) {
       alert('這個月的班表都已經發布過了！');
+      return;
+    }
+
+    // 檢查是否有請假衝突
+    const hasConflict = schedules.some(sch => 
+      leaves.some(l => 
+        l.employee_id === sch.employee_id && 
+        l.status === '已核准' && 
+        new Date(l.start_time).setHours(0,0,0,0) <= new Date(sch.schedule_date).getTime() && 
+        new Date(l.end_time).setHours(23,59,59,999) >= new Date(sch.schedule_date).getTime()
+      )
+    );
+    if (hasConflict) {
+      alert('有員工在排班日請假（紅色標記），請替換人員或刪除後再發布！');
       return;
     }
 
@@ -382,6 +403,7 @@ export default function AdminSchedule() {
           {dayData.onDuty.length > 0 ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {isMustAttend ? (
+                <>
                 <span 
                   style={{ 
                     padding: '4px 8px', 
@@ -398,9 +420,26 @@ export default function AdminSchedule() {
                 >
                   全體員工必到
                 </span>
+                {leaves.filter(l => l.status === '已核准' && new Date(l.start_time).setHours(0,0,0,0) <= new Date(dateStrYMD).getTime() && new Date(l.end_time).setHours(23,59,59,999) >= new Date(dateStrYMD).getTime()).map(l => {
+                   const emp = employees.find(e => e.employee_id === l.employee_id);
+                   if (!emp) return null;
+                   return (
+                     <div key={`leave-${l.leave_id}`} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#e5e7eb', color: '#6b7280', borderRadius: '4px', padding: '2px 6px', fontSize: '0.85rem', width: 'calc(50% - 2px)' }}>
+                       {emp.last_name}{emp.first_name} (休)
+                     </div>
+                   );
+                })}
+                </>
               ) : (
-                dayData.onDuty.map(sch => (
-                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-primary-500)', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: 'calc(50% - 2px)' }}>
+                dayData.onDuty.map(sch => {
+                  const isConflict = leaves.some(l => 
+                    l.employee_id === sch.employee_id && 
+                    l.status === '已核准' && 
+                    new Date(l.start_time).setHours(0,0,0,0) <= new Date(dateStrYMD).getTime() && 
+                    new Date(l.end_time).setHours(23,59,59,999) >= new Date(dateStrYMD).getTime()
+                  );
+                  return (
+                  <div key={sch.schedule_id} style={{ display: 'flex', alignItems: 'center', backgroundColor: isConflict ? '#ef4444' : 'var(--color-primary-500)', border: isConflict ? '2px solid #b91c1c' : 'none', color: 'white', borderRadius: '4px', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', width: 'calc(50% - 2px)' }}>
                     <span 
                       onClick={() => openSwapModal({ ...sch, dateStr })}
                       style={{ 
@@ -409,7 +448,7 @@ export default function AdminSchedule() {
                         cursor: 'pointer',
                         flex: 1
                       }}
-                      title="點擊替換人員"
+                      title={isConflict ? "此員工在該日已請假，請點擊替換人員" : "點擊替換人員"}
                     >
                       {sch.last_name}{sch.first_name}
                     </span>
@@ -421,8 +460,8 @@ export default function AdminSchedule() {
                       <X size={12} />
                     </button>
                   </div>
-
-                ))
+                  );
+                })
               )}
               {(!isMustAttend && schedules.length > 0) && (
                 <button 

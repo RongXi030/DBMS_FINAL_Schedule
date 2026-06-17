@@ -239,6 +239,17 @@ router.post('/leaves/approve', async (req, res) => {
 
     await db.execute('UPDATE LeaveRecords SET status = ?, reviewer_id = ? WHERE leave_id = ?', ['已核准', reviewer_id || null, leave_id]);
 
+    // Check if there are any Schedules that overlap with this leave
+    const [conflictingSchedules] = await db.execute(`
+      SELECT schedule_id 
+      FROM Schedules 
+      WHERE employee_id = ? 
+        AND schedule_date >= DATE(?) 
+        AND schedule_date <= DATE(?)
+    `, [leave.employee_id, leave.start_time, leave.end_time]);
+
+    const hasConflict = conflictingSchedules.length > 0;
+
     const [empDetails] = await db.execute('SELECT email, last_name, first_name FROM Employees WHERE employee_id = ?', [leave.employee_id]);
     if (empDetails.length > 0 && empDetails[0].email) {
       await sendLeaveReviewEmail(
@@ -249,7 +260,7 @@ router.post('/leaves/approve', async (req, res) => {
       );
     }
 
-    res.json({ success: true });
+    res.json({ success: true, hasConflict });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

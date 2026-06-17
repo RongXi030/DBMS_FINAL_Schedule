@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Users, FileText, AlertTriangle, X, Save, Phone, Check, Info, Mail, History, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     pendingLeaves: 0,
@@ -78,7 +80,16 @@ export default function AdminDashboard() {
       });
       const data = await res.json();
       if (data.success) {
+        if (data.hasConflict) {
+          alert('該員工在請假期間已有排班！即將跳轉至班表頁面，請將紅色標記的班次進行替換或刪除。');
+          navigate('/admin/schedule');
+        } else {
+          alert('操作成功');
+        }
         fetchData();
+        setIsHistoryModalOpen(false);
+      } else {
+        alert(data.message || '操作失敗');
       }
     } catch (e) {
       console.error(e);
@@ -126,7 +137,6 @@ export default function AdminDashboard() {
   };
 
   const getDerivedStatus = (sch) => {
-    if (!sch.is_on_duty) return { label: '休假', className: 'bg-blue-100 text-blue-800', icon: '🔵' };
     if (sch.attendance_status === '請假') return { label: '休假', className: 'bg-blue-100 text-blue-800', icon: '🔵' };
 
     const now = new Date();
@@ -192,7 +202,7 @@ export default function AdminDashboard() {
     return new Date(dateStr).toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' });
   };
 
-  const todayScheduled = todayData.filter(sch => sch.is_on_duty && sch.attendance_status !== '請假');
+  const todayScheduled = todayData.filter(sch => sch.attendance_status !== '請假');
   const expectedCount = todayScheduled.length;
   const clockedInCount = todayScheduled.filter(sch => sch.clock_in_time).length;
   const lateOrNotArrived = todayScheduled.filter(sch => !sch.clock_in_time);
