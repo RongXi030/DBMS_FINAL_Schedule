@@ -57,6 +57,16 @@ router.post('/employees', async (req, res) => {
   }
 });
 
+router.put('/employees/:id/reset-password', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.execute('UPDATE Employees SET password = "password" WHERE employee_id = ?', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 router.put('/employees/:id', async (req, res) => {
   const { id } = req.params;
   const { employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id, email, phone_number } = req.body;
@@ -65,16 +75,6 @@ router.put('/employees/:id', async (req, res) => {
       `UPDATE Employees SET employment_status = ?, position = ?, remaining_special_leave_days = ?, last_name = ?, first_name = ?, gender = ?, rule_id = ?, email = ?, phone_number = ? WHERE employee_id = ?`,
       [employment_status, position, remaining_special_leave_days, last_name, first_name, gender, rule_id || null, email || null, phone_number || null, id]
     );
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.put('/employees/:id/reset-password', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.execute('UPDATE Employees SET password = "password" WHERE employee_id = ?', [id]);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

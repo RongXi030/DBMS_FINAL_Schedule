@@ -118,7 +118,9 @@ export default function Employees() {
     if (!window.confirm('確定要將該員工的密碼重置為預設密碼 (password) 嗎？')) return;
     try {
       const res = await fetch(`https://dbms-final-schedule.onrender.com/api/employees/${id}/reset-password`, {
-        method: 'PUT'
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
       });
       const data = await res.json();
       if (data.success) {
