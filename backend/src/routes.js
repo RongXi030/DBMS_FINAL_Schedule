@@ -656,7 +656,7 @@ router.post('/schedules/publish', async (req, res) => {
     for (const empId in empSchedules) {
       const { email, name, dates } = empSchedules[empId];
       if (email) {
-        await sendSchedulePublishEmail(email, name, dates);
+        sendSchedulePublishEmail(email, name, dates).catch(console.error);
       }
     }
 
