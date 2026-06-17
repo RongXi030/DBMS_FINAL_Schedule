@@ -449,7 +449,10 @@ export default function AdminSchedule() {
                         padding: '2px 6px', 
                         fontSize: '0.85rem', 
                         cursor: 'pointer',
-                        flex: 1
+                        flex: 1,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
                       }}
                       title={isConflict ? "此員工在該日已請假，請點擊替換人員" : "點擊替換人員"}
                     >
