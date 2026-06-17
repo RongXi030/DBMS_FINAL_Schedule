@@ -654,12 +654,19 @@ router.post('/schedules/publish', async (req, res) => {
       empSchedules[draft.employee_id].dates.push(draft.schedule_date);
     }
 
-    for (const empId in empSchedules) {
-      const { email, name, dates } = empSchedules[empId];
-      if (email) {
-        sendSchedulePublishEmail(email, name, dates).catch(console.error);
+    // 背景依序發送信件，避免同時發送過多被 Gmail 擋下
+    (async () => {
+      for (const empId in empSchedules) {
+        const { email, name, dates } = empSchedules[empId];
+        if (email) {
+          try {
+            await sendSchedulePublishEmail(email, name, dates);
+          } catch (e) {
+            console.error('Email error:', e);
+          }
+        }
       }
-    }
+    })();
 
     await db.execute(`UPDATE Schedules SET status = '已發布' WHERE status = '草稿'`);
     res.json({ success: true });
