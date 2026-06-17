@@ -7,10 +7,11 @@ export default function LeaveForm() {
   const { user } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const todayDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
   const [formData, setFormData] = useState({
     type: '特休',
-    startDate: '',
-    endDate: '',
+    startDate: `${todayDate}T09:00`,
+    endDate: `${todayDate}T18:00`,
     reason: ''
   });
   const [successMsg, setSuccessMsg] = useState('');
@@ -67,6 +68,12 @@ export default function LeaveForm() {
     
     const sDate = new Date(formData.startDate);
     const eDate = new Date(formData.endDate);
+    
+    if (eDate < sDate) {
+      alert('結束時間不能早於開始時間！');
+      return;
+    }
+
     const requestedDays = Math.ceil((eDate - sDate) / (1000 * 60 * 60 * 24)) + 1;
 
     const isEmergency = ['病假', '事假'].includes(formData.type);
@@ -103,7 +110,7 @@ export default function LeaveForm() {
       const data = await res.json();
       if (data.success) {
         setSuccessMsg('假單已成功送出！');
-        setFormData({ type: '特休', startDate: '', endDate: '', reason: '' });
+        setFormData({ type: '特休', startDate: `${todayDate}T09:00`, endDate: `${todayDate}T18:00`, reason: '' });
         setShowModal(false);
         fetchLeaves();
         fetchQuota();
