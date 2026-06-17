@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, FileText, AlertTriangle, X, Save, Phone, Check, Info, Mail } from 'lucide-react';
+import { Users, FileText, AlertTriangle, X, Save, Phone, Check, Info, Mail, History, Search } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     pendingLeaves: 0,
     abnormalAttendances: 0
   });
   const [pendingLeaves, setPendingLeaves] = useState([]);
+  const [allLeaves, setAllLeaves] = useState([]);
+  
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyFilterDate, setHistoryFilterDate] = useState('');
+  const [historyFilterName, setHistoryFilterName] = useState('');
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PER_PAGE = 5;
 
   const [abnormalList, setAbnormalList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +38,7 @@ export default function AdminDashboard() {
       const leavesRes = await fetch('https://dbms-final-schedule.onrender.com/api/leaves');
       const leavesData = await leavesRes.json();
       if (leavesData.success) {
+        setAllLeaves(leavesData.leaves);
         setPendingLeaves(leavesData.leaves.filter(l => l.status === '審核中'));
       }
 
@@ -64,7 +74,7 @@ export default function AdminDashboard() {
       const res = await fetch(`https://dbms-final-schedule.onrender.com/api/leaves/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leave_id: id })
+        body: JSON.stringify({ leave_id: id, reviewer_id: user?.employee_id })
       });
       const data = await res.json();
       if (data.success) {
@@ -257,7 +267,16 @@ export default function AdminDashboard() {
       </div>
 
       <div className="card glass-panel" style={{ marginBottom: 'var(--space-6)' }}>
-        <h3 style={{ marginBottom: 'var(--space-3)' }}>待審核請假清單</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
+          <h3 style={{ margin: 0 }}>待審核請假清單</h3>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setIsHistoryModalOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <History size={16} /> 查看歷史請假單
+          </button>
+        </div>
         {pendingLeaves.length === 0 ? (
           <p style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 'var(--space-4) 0' }}>目前沒有待處理的假單</p>
         ) : (
@@ -454,6 +473,122 @@ export default function AdminDashboard() {
               </div>
             </div>
             {/* 這裡已經移除了核准與駁回的按鈕，因為他們在表格操作欄位中了 */}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {isHistoryModalOpen && createPortal(
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+              <h3 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}><History size={20} /> 歷史請假單紀錄</h3>
+              <button onClick={() => setIsHistoryModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-3)' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '4px' }}>申請日期篩選</label>
+                <input 
+                  type="date" 
+                  className="input-field" 
+                  value={historyFilterDate}
+                  onChange={e => { setHistoryFilterDate(e.target.value); setHistoryPage(1); }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '4px' }}>申請者姓名篩選</label>
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder="輸入姓名..."
+                    value={historyFilterName}
+                    onChange={e => { setHistoryFilterName(e.target.value); setHistoryPage(1); }}
+                    style={{ paddingLeft: '32px' }}
+                  />
+                  <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', marginBottom: 'var(--space-3)' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>申請時間</th>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>申請人</th>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>假別 / 事由</th>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>請假時間</th>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>狀態</th>
+                    <th style={{ padding: '12px 8px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>審核人</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const filteredLeaves = allLeaves.filter(l => {
+                      if (l.status === '審核中') return false;
+                      let match = true;
+                      if (historyFilterDate) {
+                        match = match && new Date(l.application_time).toLocaleDateString('en-CA') === historyFilterDate;
+                      }
+                      if (historyFilterName) {
+                        const fullName = `${l.last_name}${l.first_name}`;
+                        match = match && fullName.includes(historyFilterName);
+                      }
+                      return match;
+                    });
+                    
+                    const totalPages = Math.ceil(filteredLeaves.length / HISTORY_PER_PAGE) || 1;
+                    const paginatedLeaves = filteredLeaves.slice((historyPage - 1) * HISTORY_PER_PAGE, historyPage * HISTORY_PER_PAGE);
+
+                    if (filteredLeaves.length === 0) {
+                      return <tr><td colSpan="6" style={{ padding: '16px', color: '#94a3b8' }}>查無歷史紀錄</td></tr>;
+                    }
+
+                    return (
+                      <>
+                        {paginatedLeaves.map(l => (
+                          <tr key={l.leave_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                            <td style={{ padding: '12px 8px' }}>{new Date(l.application_time).toLocaleDateString()}</td>
+                            <td style={{ padding: '12px 8px' }}>{l.last_name}{l.first_name}</td>
+                            <td style={{ padding: '12px 8px' }}>
+                              <span style={{ padding: '2px 6px', border: '1px solid #dbeafe', backgroundColor: '#eff6ff', color: '#3b82f6', borderRadius: '4px', fontSize: '0.8rem', display: 'inline-block', marginBottom: '4px' }}>{l.leave_type}</span>
+                              <div style={{ fontSize: '0.85rem', color: '#64748b', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: '0 auto' }} title={l.reason}>{l.reason}</div>
+                            </td>
+                            <td style={{ padding: '12px 8px', fontSize: '0.85rem' }}>
+                              <div>{new Date(l.start_time).toLocaleString('zh-TW', { hour12: false }).slice(0, -3)} ~</div>
+                              <div>{new Date(l.end_time).toLocaleString('zh-TW', { hour12: false }).slice(0, -3)}</div>
+                            </td>
+                            <td style={{ padding: '12px 8px' }}>
+                              <span style={{ color: l.status === '已核准' ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{l.status}</span>
+                            </td>
+                            <td style={{ padding: '12px 8px', color: '#475569' }}>
+                              {l.reviewer_last_name ? `${l.reviewer_last_name}${l.reviewer_first_name}` : '系統/未知'}
+                            </td>
+                          </tr>
+                        ))}
+                        {totalPages > 1 && (
+                          <tr>
+                            <td colSpan="6" style={{ padding: '16px 8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+                                <button className="btn btn-secondary" onClick={() => setHistoryPage(p => Math.max(1, p - 1))} disabled={historyPage === 1} style={{ padding: '4px 8px' }}>上一頁</button>
+                                <span style={{ fontSize: '0.9rem' }}>第 {historyPage} / {totalPages} 頁</span>
+                                <button className="btn btn-secondary" onClick={() => setHistoryPage(p => Math.min(totalPages, p + 1))} disabled={historyPage === totalPages} style={{ padding: '4px 8px' }}>下一頁</button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })()}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setIsHistoryModalOpen(false)}>關閉</button>
+            </div>
           </div>
         </div>,
         document.body

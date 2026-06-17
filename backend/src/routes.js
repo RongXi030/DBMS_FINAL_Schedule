@@ -164,11 +164,10 @@ router.post('/attendance/clock-out', async (req, res) => {
 router.get('/leaves', async (req, res) => {
   const { employee_id } = req.query;
   try {
-    let query = `
-      SELECT l.*, e.last_name, e.first_name 
+      SELECT l.*, e.last_name, e.first_name, r.last_name AS reviewer_last_name, r.first_name AS reviewer_first_name
       FROM LeaveRecords l 
       JOIN Employees e ON l.employee_id = e.employee_id
-    `;
+      LEFT JOIN Employees r ON l.reviewer_id = r.employee_id
     let params = [];
     if (employee_id) {
       query += ' WHERE l.employee_id = ?';
@@ -219,7 +218,7 @@ router.post('/leaves/apply', async (req, res) => {
 });
 
 router.post('/leaves/approve', async (req, res) => {
-  const { leave_id } = req.body;
+  const { leave_id, reviewer_id } = req.body;
   try {
     const [leaves] = await db.execute('SELECT * FROM LeaveRecords WHERE leave_id = ?', [leave_id]);
     const leave = leaves[0];
@@ -236,7 +235,7 @@ router.post('/leaves/approve', async (req, res) => {
       );
     }
 
-    await db.execute('UPDATE LeaveRecords SET status = ? WHERE leave_id = ?', ['已核准', leave_id]);
+    await db.execute('UPDATE LeaveRecords SET status = ?, reviewer_id = ? WHERE leave_id = ?', ['已核准', reviewer_id || null, leave_id]);
 
     const [empDetails] = await db.execute('SELECT email, last_name, first_name FROM Employees WHERE employee_id = ?', [leave.employee_id]);
     if (empDetails.length > 0 && empDetails[0].email) {
@@ -255,12 +254,12 @@ router.post('/leaves/approve', async (req, res) => {
 });
 
 router.post('/leaves/reject', async (req, res) => {
-  const { leave_id } = req.body;
+  const { leave_id, reviewer_id } = req.body;
   try {
     const [leaves] = await db.execute('SELECT * FROM LeaveRecords WHERE leave_id = ?', [leave_id]);
     const leave = leaves[0];
 
-    await db.execute('UPDATE LeaveRecords SET status = ? WHERE leave_id = ?', ['已駁回', leave_id]);
+    await db.execute('UPDATE LeaveRecords SET status = ?, reviewer_id = ? WHERE leave_id = ?', ['已駁回', reviewer_id || null, leave_id]);
 
     const [empDetails] = await db.execute('SELECT email, last_name, first_name FROM Employees WHERE employee_id = ?', [leave.employee_id]);
     if (empDetails.length > 0 && empDetails[0].email) {
