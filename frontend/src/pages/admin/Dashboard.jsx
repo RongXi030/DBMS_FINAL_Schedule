@@ -281,7 +281,7 @@ export default function AdminDashboard() {
           {todayData.length === 0 ? (
             <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', padding: 'var(--space-4) 0' }}>今日無排班紀錄</p>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
               <thead>
                 <tr style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
                   <th style={{ padding: '12px 8px', fontWeight: 500, borderBottom: '1px solid var(--color-border)' }}>姓名</th>
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
                       <td style={{ padding: '16px 8px', color: 'var(--color-text-secondary)' }}>{formatTime(sch.clock_out_time)}</td>
                       <td style={{ padding: '16px 8px' }}>
                         {sch.phone_number ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)', cursor: 'pointer', transition: 'color 0.2s' }} className="hover-text-blue">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--color-text-secondary)', cursor: 'pointer', transition: 'color 0.2s' }} className="hover-text-blue">
                             <Phone size={14} /> {sch.phone_number}
                           </div>
                         ) : (
