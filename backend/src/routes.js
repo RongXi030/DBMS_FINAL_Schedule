@@ -735,9 +735,8 @@ router.get('/reports/detailed', async (req, res) => {
     const [emps] = await db.execute(`
       SELECT DISTINCT e.employee_id, e.last_name, e.first_name 
       FROM Employees e 
-      LEFT JOIN Schedules s ON e.employee_id = s.employee_id AND s.schedule_date >= ? AND s.schedule_date < ?
-      WHERE (e.employment_status = '在職' OR s.schedule_id IS NOT NULL) 
-      AND e.rule_id IS NOT NULL
+      JOIN Schedules s ON e.employee_id = s.employee_id 
+      WHERE s.schedule_date >= ? AND s.schedule_date < ? AND s.status = '已發布'
     `, [startStr, endStr]);
 
     // 獲取所有相關紀錄
@@ -912,9 +911,8 @@ router.get('/reports/stats', async (req, res) => {
       empsQuery = `
         SELECT COUNT(DISTINCT e.employee_id) as count 
         FROM Employees e 
-        LEFT JOIN Schedules s ON e.employee_id = s.employee_id AND s.schedule_date >= ? AND s.schedule_date < ?
-        WHERE (e.employment_status = '在職' OR s.schedule_id IS NOT NULL) 
-        AND e.rule_id IS NOT NULL
+        JOIN Schedules s ON e.employee_id = s.employee_id 
+        WHERE s.schedule_date >= ? AND s.schedule_date < ? AND s.status = '已發布'
       `;
       empsParams = [startStr, endStr];
     }
