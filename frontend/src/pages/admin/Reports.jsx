@@ -36,8 +36,8 @@ export default function Reports() {
   }, [year, month]);
 
   const avgAttendance = detailedData.length ? (detailedData.reduce((acc, curr) => acc + curr.attendanceRate, 0) / detailedData.length).toFixed(1) : 0;
-  const totalHours = detailedData.reduce((acc, curr) => acc + curr.totalActualHours, 0).toFixed(1);
-  const totalOvertime = detailedData.reduce((acc, curr) => acc + curr.totalOvertimeHours, 0).toFixed(1);
+  const totalHours = detailedData.reduce((acc, curr) => acc + curr.totalActualHours, 0).toFixed(2);
+  const totalOvertime = detailedData.reduce((acc, curr) => acc + curr.totalOvertimeHours, 0).toFixed(2);
   const totalAbnormal = detailedData.reduce((acc, curr) => acc + curr.abnormal.late + curr.abnormal.early + curr.abnormal.absent, 0);
 
   const topAbnormal = [...detailedData]
@@ -123,7 +123,7 @@ export default function Reports() {
             {topOvertime.length === 0 ? <p style={{ color: 'var(--color-text-secondary)' }}>本月無加班紀錄</p> : topOvertime.map((emp, index) => (
               <div key={emp.employee_id} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: index < topOvertime.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                 <div style={{ fontWeight: 500 }}>第 {index + 1} 名：{emp.name}</div>
-                <div style={{ color: '#f59e0b', fontWeight: 600 }}>{emp.totalOvertimeHours} 小時</div>
+                <div style={{ color: '#f59e0b', fontWeight: 600 }}>{Number(emp.totalOvertimeHours).toFixed(2)} 小時</div>
               </div>
             ))}
           </div>
@@ -167,9 +167,9 @@ export default function Reports() {
                       <span style={{ fontSize: '0.875rem' }}>{emp.attendanceRate}%</span>
                     </div>
                   </td>
-                  <td>{emp.totalActualHours} 小時</td>
+                  <td>{Number(emp.totalActualHours).toFixed(2)} 小時</td>
                   <td style={{ color: emp.totalOvertimeHours > 0 ? '#10b981' : 'inherit', fontWeight: emp.totalOvertimeHours > 0 ? 600 : 400 }}>
-                    {emp.totalOvertimeHours > 0 ? `+${emp.totalOvertimeHours}` : '0'} 小時
+                    {emp.totalOvertimeHours > 0 ? `+${Number(emp.totalOvertimeHours).toFixed(2)}` : '0'} 小時
                   </td>
                 </tr>
               ))}
