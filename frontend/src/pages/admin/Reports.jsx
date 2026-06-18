@@ -36,18 +36,11 @@ export default function Reports() {
   }, [year, month]);
 
   const avgAttendance = detailedData.length ? (detailedData.reduce((acc, curr) => acc + curr.attendanceRate, 0) / detailedData.length).toFixed(1) : 0;
-  const totalHours = detailedData.reduce((acc, curr) => acc + curr.totalActualHours, 0).toFixed(2);
-  const totalOvertime = detailedData.reduce((acc, curr) => acc + curr.totalOvertimeHours, 0).toFixed(2);
   const totalAbnormal = detailedData.reduce((acc, curr) => acc + curr.abnormal.late + curr.abnormal.early + curr.abnormal.absent, 0);
 
   const topAbnormal = [...detailedData]
     .filter(emp => (emp.abnormal.late + emp.abnormal.early + emp.abnormal.absent) > 0)
     .sort((a, b) => (b.abnormal.late + b.abnormal.early + b.abnormal.absent) - (a.abnormal.late + a.abnormal.early + a.abnormal.absent))
-    .slice(0, 3);
-
-  const topOvertime = [...detailedData]
-    .filter(emp => emp.totalOvertimeHours > 0)
-    .sort((a, b) => b.totalOvertimeHours - a.totalOvertimeHours)
     .slice(0, 3);
 
   return (
@@ -79,27 +72,12 @@ export default function Reports() {
           <div style={{ fontSize: '3rem', fontWeight: 700, color: '#10b981' }}>{avgAttendance}%</div>
         </div>
 
-        <div className="card glass-panel" style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)' }}>
-          <Clock size={48} color="#3b82f6" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', marginBottom: '8px' }}>本月累計總工時</h3>
-          <div style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>{totalHours} 小時</div>
-          {totalOvertime > 0 && <div style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '8px' }}>(含加班 {totalOvertime} 小時)</div>}
-        </div>
-
-        <div className="card glass-panel" style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)' }}>
-          <AlertTriangle size={48} color="#ef4444" style={{ margin: '0 auto var(--space-3)' }} />
-          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', marginBottom: '8px' }}>本月異常總次數</h3>
-          <div style={{ fontSize: '3rem', fontWeight: 700, color: '#ef4444' }}>{totalAbnormal} 次</div>
-        </div>
-      </div>
-
-      <div className="grid-system" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 'var(--space-6)' }}>
         <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '1.2rem', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <AlertTriangle color="#ef4444" size={24} /> 出勤異常 Top 3
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {topAbnormal.length === 0 ? <p style={{ color: 'var(--color-text-secondary)' }}>本月無異常紀錄</p> : topAbnormal.map((emp, index) => {
+            {topAbnormal.length === 0 ? <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center' }}>本月無異常紀錄</p> : topAbnormal.map((emp, index) => {
               const abnormalCount = emp.abnormal.late + emp.abnormal.early + emp.abnormal.absent;
               const details = [];
               if (emp.abnormal.late > 0) details.push(`遲到 ${emp.abnormal.late}`);
@@ -115,18 +93,10 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="card glass-panel" style={{ padding: 'var(--space-4)' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock color="#f59e0b" size={24} /> 加班時數 Top 3
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {topOvertime.length === 0 ? <p style={{ color: 'var(--color-text-secondary)' }}>本月無加班紀錄</p> : topOvertime.map((emp, index) => (
-              <div key={emp.employee_id} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: index < topOvertime.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                <div style={{ fontWeight: 500 }}>第 {index + 1} 名：{emp.name}</div>
-                <div style={{ color: '#f59e0b', fontWeight: 600 }}>{Number(emp.totalOvertimeHours).toFixed(2)} 小時</div>
-              </div>
-            ))}
-          </div>
+        <div className="card glass-panel" style={{ textAlign: 'center', padding: 'var(--space-6) var(--space-4)' }}>
+          <AlertTriangle size={48} color="#ef4444" style={{ margin: '0 auto var(--space-3)' }} />
+          <h3 style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', marginBottom: '8px' }}>本月異常總次數</h3>
+          <div style={{ fontSize: '3rem', fontWeight: 700, color: '#ef4444' }}>{totalAbnormal} 次</div>
         </div>
       </div>
 
@@ -146,7 +116,6 @@ export default function Reports() {
                 <th>異常(遲/早/缺)</th>
                 <th>出勤率</th>
                 <th>總工時</th>
-                <th>加班時數</th>
               </tr>
             </thead>
             <tbody>
@@ -168,14 +137,11 @@ export default function Reports() {
                     </div>
                   </td>
                   <td>{Number(emp.totalActualHours).toFixed(2)} 小時</td>
-                  <td style={{ color: emp.totalOvertimeHours > 0 ? '#10b981' : 'inherit', fontWeight: emp.totalOvertimeHours > 0 ? 600 : 400 }}>
-                    {emp.totalOvertimeHours > 0 ? `+${Number(emp.totalOvertimeHours).toFixed(2)}` : '0'} 小時
-                  </td>
                 </tr>
               ))}
               {detailedData.length === 0 && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-secondary)' }}>查無資料</td>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-secondary)' }}>查無資料</td>
                 </tr>
               )}
             </tbody>
