@@ -5,6 +5,7 @@ import db, { testConnection } from './config/db.js';
 import apiRoutes from './routes.js';
 import { initCronJobs } from './cron/shiftReminder.js';
 
+process.env.TZ = 'Asia/Taipei';
 dotenv.config();
 
 const app = express();
